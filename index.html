@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CurrHub - GenAI Curriculum Generator</title>
+
+    <!-- Branding -->
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="brand">
+            <!-- Inline SVG Logo -->
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M3 7L12 2L21 7V17L12 22L3 17V7Z" stroke="white" stroke-width="2" />
+                <path d="M12 2V22" stroke="white" stroke-width="2" />
+            </svg>
+            <h1>CurrHub</h1>
+        </div>
+        <p class="tagline">Design Smarter Curriculums with AI</p>
+        <span class="sub">Powered by IBM Granite via Ollama</span>
+    </div>
+
+    <!-- APP -->
+    <div class="app-container">
+
+        <div class="form-card">
+            <h2>Create Your Curriculum</h2>
+            <p class="form-subtitle">Turn ideas into structured learning paths</p>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <i data-lucide="book-open"></i>
+                    <input id="skill" placeholder="Skill (e.g. Machine Learning)">
+                </div>
+                <div class="input-group">
+                    <i data-lucide="layers"></i>
+                    <input id="level" placeholder="Level (e.g. Masters)">
+                </div>
+                <div class="input-group">
+                    <i data-lucide="calendar"></i>
+                    <input id="semesters" type="number" placeholder="Semesters">
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="primary" onclick="generate()">
+                    <i data-lucide="sparkles"></i> Generate
+                </button>
+                <button class="secondary" onclick="clearAll()">
+                    <i data-lucide="x-circle"></i> Clear
+                </button>
+            </div>
+
+            <div class="download-buttons">
+                <button onclick="downloadJSON()">
+                    <i data-lucide="file-json"></i> Download as JSON
+                </button>
+                <button onclick="downloadPDF()">
+                    <i data-lucide="file-text"></i> Download as PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressBar" class="progress hidden">
+            <div id="progressFill"></div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p id="loadingText">Generating curriculum...</p>
+            <div class="skeleton-grid">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <footer>
+        <p>© 2026 CurrHub. All rights reserved.</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Page load animation
+        anime({
+            targets: '.hero, .form-card',
+            opacity: [0, 1],
+            translateY: [40, 0],
+            delay: anime.stagger(200),
+            duration: 900,
+            easing: 'easeOutExpo'
+        });
+
+        // Loading messages
+        const loadingMessages = [
+            "Talking to AI...",
+            "Designing curriculum...",
+            "Structuring knowledge...",
+            "Almost there..."
+        ];
+        let msgIndex = 0;
+        setInterval(() => {
+            if (loading.classList.contains("hidden")) return;
+            loadingText.innerText = loadingMessages[msgIndex++ % loadingMessages.length];
+        }, 1500);
+
+        async function generate() {
+            loading.classList.remove("hidden");
+            progressBar.classList.remove("hidden");
+            results.innerHTML = "";
+
+            let progress = 0;
+            const fakeProgress = setInterval(() => {
+                progress = Math.min(progress + Math.random() * 15, 90);
+                progressFill.style.width = progress + "%";
+            }, 400);
+
+            const res = await fetch("/api/generate-curriculum", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    skill: skill.value,
+                    level: level.value,
+                    semesters: semesters.value
+                })
+            });
+
+            const data = await res.json();
+
+            clearInterval(fakeProgress);
+            progressFill.style.width = "100%";
+            setTimeout(() => progressBar.classList.add("hidden"), 600);
+
+            loading.classList.add("hidden");
+            renderCurriculum(data);
+            showToast("Curriculum generated successfully");
+            results.scrollIntoView({ behavior: "smooth" });
+        }
+
+        function renderCurriculum(data) {
+            results.innerHTML = "";
+
+            data.semesters.forEach(sem => {
+                const semDiv = document.createElement("div");
+                semDiv.className = "semester anime-semester";
+                semDiv.style.opacity = 0;
+                semDiv.innerHTML = `<h2 class="sem-title">${sem.name}</h2>`;
+
+                const grid = document.createElement("div");
+                grid.className = "card-grid";
+
+                sem.courses.forEach(course => {
+                    const card = document.createElement("div");
+                    card.className = "card anime-card";
+                    card.style.opacity = 0;
+
+                    card.innerHTML = `
+                <h3>${course.course_name}</h3>
+                <p class="credits">Credits: ${course.credits}</p>
+                <p class="topics-title">Topics</p>
+                <ul>${course.topics.map(t => `<li>${t}</li>`).join("")}</ul>
+            `;
+                    grid.appendChild(card);
+                });
+
+                semDiv.appendChild(grid);
+                results.appendChild(semDiv);
+            });
+
+            anime({
+                targets: '.anime-semester',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                delay: anime.stagger(200),
+                duration: 700,
+                easing: 'easeOutCubic'
+            });
+
+            anime({
+                targets: '.anime-card',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                delay: anime.stagger(100),
+                duration: 600,
+                easing: 'easeOutCubic'
+            });
+        }
+
+        function clearAll() {
+            anime({
+                targets: '.semester',
+                opacity: [1, 0],
+                translateY: [0, 30],
+                duration: 500,
+                easing: 'easeInExpo',
+                complete: () => {
+                    skill.value = "";
+                    level.value = "";
+                    semesters.value = "";
+                    results.innerHTML = "";
+                    loading.classList.add("hidden");
+                }
+            });
+        }
+
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.classList.remove("hidden");
+            anime({
+                targets: '#toast',
+                translateY: [50, 0],
+                opacity: [0, 1],
+                duration: 400,
+                easing: 'easeOutExpo'
+            });
+            setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
+
+        function downloadJSON() {
+            showToast("Downloading JSON...");
+            window.location = "/api/download-json";
+        }
+
+        function downloadPDF() {
+            showToast("Downloading PDF...");
+            window.location = "/api/download-pdf";
+        }
+    </script>
+</body>
+
+</html>
