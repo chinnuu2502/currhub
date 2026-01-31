@@ -1,0 +1,60 @@
+{
+    "title": "Machine Learning BTech Curriculum",
+    "level": "btech",
+    "semesters": [
+        {
+            "name": "Semester 1",
+            "courses": [
+                {
+                    "course_name": "Introduction to Computer Science",
+                    "credits": 3,
+                    "topics": [
+                        "Computer Organization",
+                        "Data Structures",
+                        "Algorithms"
+                    ]
+                },
+                {
+                    "course_name": "Calculus",
+                    "credits": 4,
+                    "topics": [
+                        "Single Variable Calculus",
+                        "Multivariable Calculus",
+                        "Vector Analysis"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Semester 2",
+            "courses": [
+                {
+                    "course_name": "Programming Fundamentals",
+                    "credits": 4,
+                    "topics": [
+                        "Java Programming",
+                        "Object-Oriented Programming"
+                    ]
+                },
+                {
+                    "course_name": "Mathematics for Machine Learning",
+                    "credits": 3,
+                    "topics": [
+                        "Linear Algebra",
+                        "Probability Theory",
+                        "Statistics"
+                    ]
+                },
+                {
+                    "course_name": "Machine Learning Principles",
+                    "credits": 4,
+                    "topics": [
+                        "Supervised Learning",
+                        "Unsupervised Learning",
+                        "Reinforcement Learning"
+                    ]
+                }
+            ]
+        }
+    ]
+}
